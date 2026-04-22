@@ -213,7 +213,7 @@ const DEMO=[
 {id:genId(),title:'新手如何做跨境电商选品',desc:'跨境电商选品的底层逻辑+3个低成本起步策略',category:'business',priority:'high',score:82,platform:'yt',status:'draft',tags:['跨境电商','选品','电商创业'],created:'2025-04-22',platforms:{xhs:{status:'',publishDate:'',views:'',likes:''},dy:{status:'',publishDate:'',views:'',likes:''},yt:{status:'draft',publishDate:'',views:'',likes:''}},ai_report:''},
 ];
 
-function loadDemoData(){state.topics=DEMO.map(t=>({...t,id:t.id||genId()}));save();renderAll();showToast('已恢复演示数据','success')}
+function loadDemoData(){state.topics=DEMO.map(t=>({...t,id:t.id||genId()}));save();renderAll();renderModelChips();showToast('已恢复演示数据','success')}
 function clearAllData(){if(confirm('确定清空所有数据？')){state.topics=[];save();renderAll();showToast('数据已清空','info')}}
 
 // ═══════════ RENDERING ═══════════
@@ -410,6 +410,43 @@ function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').repla
 
 // ═══════════ TOAST ═══════════
 function showToast(msg,type='info'){const t=document.createElement('div');t.className='toast toast-'+type;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000)}
+
+// ═══════════ MODEL CHIPS & API TEST ═══════════
+const QUICK_MODELS=[{id:'anthropic/claude-sonnet-4.6',label:'Claude Sonnet 4.6'},{id:'google/gemini-2.0-flash',label:'Gemini 2.0 Flash'},{id:'google/gemini-2.5-pro-preview-06-05',label:'Gemini 2.5 Pro'},{id:'meta-llama/llama-3.3-70b-versatile',label:'Llama 3.3 70B'},{id:'openai/gpt-4o-mini',label:'GPT-4o Mini'},{id:'mistralai/mistral-saba-24b',label:'Mistral Saba'}];
+let selectedChip=null;
+function renderModelChips(){
+  const c=document.querySelector('.model-chips');if(!c)return;
+  c.innerHTML=QUICK_MODELS.map(m=>'<span class="chip'+(state.settings.model===m.id?' selected':'')+'" data-model="'+m.id+'">'+m.label+'</span>').join('');
+  c.querySelectorAll('.chip').forEach(ch=>{ch.addEventListener('click',()=>{c.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));ch.classList.add('selected');document.getElementById('setModel').value=ch.dataset.model})});
+}
+async function testAiConnection(){
+  const key=document.getElementById('setApiKey').value.trim();
+  const model=(document.getElementById('setModel').value||'anthropic/claude-sonnet-4.6').trim();
+  if(!key){showToast('请先输入API Key','error');return}
+  const btn=document.getElementById('testConnBtn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> 测试中...';
+  document.getElementById('testResult').innerHTML='<span class="loading-text"><span class="spinner"></span> 正在验证...</span>';
+  try{
+    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model:model,messages:[{role:'user',content:'Reply OK only'}],max_tokens:10,temperature:0.1})});
+    if(res.ok){
+      const data=await res.json();
+      const usage=data.usage?.total_tokens||'?';
+      document.getElementById('testResult').innerHTML='<span style="color:#00b894">✅ 连接成功！已用token: '+usage+'</span>';
+      showToast('✅ API正常！模型:'+data.choices?.[0]?.model,model);
+    }else{
+      const err=await res.text().catch(()=>'{text:"unknown"}');
+      document.getElementById('testResult').innerHTML='<span style="color:#ff6b6b">❌ HTTP '+res.status+'</span>';
+      showToast('❌ API错误: '+err.slice(0,120),'error');
+    }
+  }catch(e){
+    document.getElementById('testResult').innerHTML='<span style="color:#ff6b6b">❌ 网络异常</span>';
+    showToast('❌ 无法连接OpenRouter: '+e.message,'error');
+  }
+  btn.disabled=false;btn.innerHTML='📡 测试API连接';
+}
+
+}
+
+
 
 // ═══════════ INIT ═══════════
 (async ()=>{load();if(!state.topics.length)loadDemoData();renderAll()})();
