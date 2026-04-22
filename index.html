@@ -270,7 +270,7 @@ function renderDistribution(){
   document.getElementById('distBody').innerHTML=pub.map(t=>`<tr><td>${t.title}</td><td><span class="badge bg-${t.status}">${STATUS_NAMES[t.status]}</span></td><td>${t.platforms.xhs.status?'✅ '+t.platforms.xhs.views:'—'}</td><td>${t.platforms.dy.status?'✅ '+t.platforms.dy.views:'—'}</td><td>${t.platforms.yt.status?'✅ '+t.platforms.yt.views:'—'}</td><td>${t.platforms.xhs.publishDate||t.platforms.dy.publishDate||'—'}</td><td><button class="btn btn-sm btn-out" onclick="editDist('${t.id}')" style="padding:.2rem .5rem;font-size:.72rem">更新数据</button></td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--dim)">暂无已发布内容</td></tr>';
 }
 
-function renderSettings(){document.getElementById('setApiKey').value=state.settings.apiKey||'';document.getElementById('setModel').value=state.settings.model||'anthropic/claude-sonnet-4.6';document.getElementById('setTeam').value=state.settings.team;document.getElementById('setMinScore').value=state.settings.minScore;renderModelChips()
+}function renderSettings(){document.getElementById('setApiKey').value=state.settings.apiKey||'';document.getElementById('setModel').value=state.settings.model||'anthropic/claude-sonnet-4.6';document.getElementById('setTeam').value=state.settings.team;document.getElementById('setMinScore').value=state.settings.minScore;renderModelChips()}
 
 // ═══════════ ACTIONS ═══════════
 function openAddModal(){state.editingId=null;document.getElementById('modalTitle').textContent='新建选题';document.getElementById('fTitle').value='';document.getElementById('fDesc').value='';document.getElementById('fScore').value=75;document.getElementById('fTags').value='';document.getElementById('modalOverlay').classList.add('show')}
