@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内容工厂 | 若腾AI破局</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--pri:#6C5CE7;--sec:#00CEC9;--bg:#0A0A14;--card:#13132B;--card2:#1A1A3E;--txt:#E8E8F0;--dim:#7777A0;--border:rgba(255,255,255,.06);--xhs:#FF2442;--dy:#FE2C55;--yt:#FF0000;--done:#00B894;--warn:#fdcb6e}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--txt);display:flex;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+.sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.side-brand{padding:1.5rem;border-bottom:1px solid var(--border)}
+.side-brand h1{font-size:1.1rem;background:linear-gradient(135deg,var(--pri),var(--sec));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}.side-brand span{font-size:.7rem;color:var(--dim);display:block;margin-top:2px}
+.side-nav{flex:1;padding:1rem 0}.nav-item{display:flex;align-items:center;gap:.7rem;padding:.7rem 1.5rem;cursor:pointer;color:var(--dim);transition:all .2s;font-size:.9rem;border-left:3px solid transparent}.nav-item:hover{color:var(--txt);background:rgba(255,255,255,.03)}.nav-item.active{color:var(--sec);background:rgba(0,206,201,.06);border-left-color:var(--sec)}.nav-icon{font-size:1.1rem;width:22px;text-align:center}
+.side-footer{padding:1rem;border-top:1px solid var(--border);font-size:.75rem;color:var(--dim);text-align:center}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:60px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;flex-shrink:0}
+.topbar h2{font-size:1.15rem;font-weight:600}
+.topbar-actions{display:flex;gap:.5rem}
+.content{flex:1;overflow-y:auto;padding:1.5rem 2rem}
+.page{display:none}.page.active{display:block}
+.btn{padding:.55rem 1.3rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem}.btn-pri{background:linear-gradient(135deg,var(--pri),#8B7CF7);color:#fff}.btn-pri:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(108,92,231,.4)}.btn-out{background:transparent;border:1px solid rgba(255,255,255,.12);color:var(--txt)}.btn-out:hover{border-color:var(--sec);color:var(--sec)}.btn-sm{padding:.35rem .8rem;font-size:.8rem}.btn-danger{background:rgba(255,50,50,.15);color:#ff6b6b;border:none}.btn-warn{background:rgba(253,203,110,.15);color:var(--warn);border:none}.btn-loading{opacity:.6;pointer-events:none}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.5rem}.stat-label{font-size:.8rem;color:var(--dim);margin-bottom:.3rem}.stat-val{font-size:1.8rem;font-weight:700}.stat-sub{font-size:.75rem;color:var(--dim);margin-top:.2rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.card-hd{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}.card-hd h3{font-size:.95rem;font-weight:600}.card-bd{padding:1rem 1.5rem}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:.65rem 1rem;font-size:.75rem;color:var(--dim);font-weight:500;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)}.tbl td{padding:.75rem 1rem;font-size:.88rem;border-bottom:1px solid var(--border)}
+.tbl tr:hover{background:rgba(255,255,255,.02)}
+.badge{padding:.2rem .65rem;border-radius:6px;font-size:.75rem;font-weight:600;display:inline-block}
+.bg-draft{background:rgba(108,92,231,.15);color:#a29bfe}.bg-writing{background:rgba(253,203,110,.15);color:#fdcb6e}.bg-review{background:rgba(116,185,255,.15);color:#74b9ff}.bg-published{background:rgba(0,184,148,.15);color:var(--done)}.bg-track{background:rgba(255,159,67,.15);color:#ffa502}
+.platform-xhs{color:var(--xhs)}.platform-dy{color:var(--dy)}.platform-yt{color:var(--yt)}
+.score-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;width:80px;display:inline-block;vertical-align:middle}.score-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#6C5CE7,#00CEC9)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:99;display:none;align-items:center;justify-content:center}.modal-overlay.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:90%;max-width:640px;max-height:90vh;overflow-y:auto}
+.modal-hd{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}.modal-hd h3{font-size:1rem}.modal-cl{cursor:pointer;color:var(--dim);font-size:1.2rem}.modal-bd{padding:1.5rem}
+.form-group{margin-bottom:1.2rem}.form-group label{display:block;font-size:.85rem;color:var(--dim);margin-bottom:.4rem}
+.form-input{width:100%;padding:.65rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--txt);font-size:.9rem;outline:none;transition:border .2s}.form-input:focus{border-color:var(--pri)}.textarea{resize:vertical;min-height:80px;font-family:inherit}.select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%237777A0'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.form-row{display:flex;gap:1rem}.form-row>.form-group{flex:1}
+.kanban{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}
+.kol{background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;max-height:65vh}
+.kol-hd{padding:1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:.9rem;font-weight:600}
+.kol-count{font-size:.75rem;background:rgba(255,255,255,.06);padding:.15rem .5rem;border-radius:4px}
+.kol-body{padding:.75rem;flex:1;overflow-y:auto}
+.kan-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.9rem;margin-bottom:.6rem;cursor:pointer;transition:all .2s}
+.kan-card:hover{border-color:rgba(108,92,231,.3);transform:translateY(-1px)}
+.kan-card h4{font-size:.88rem;margin-bottom:.4rem;line-height:1.3}
+.kan-meta{display:flex;gap:.5rem;font-size:.75rem;color:var(--dim);align-items:center}
+.chart-section{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}@media(max-width:900px){.chart-section{grid-template-columns:1fr}}
+.bar-chart{padding:1rem 0}.bar-row{display:flex;align-items:center;margin-bottom:.8rem;gap:.5rem}
+.bar-label{width:80px;font-size:.8rem;color:var(--dim);text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:24px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:.5rem;font-size:.7rem;font-weight:600;color:#fff;transition:width .8s ease}
+.donut-wrap{display:flex;align-items:center;justify-content:center;padding:1rem;gap:2rem}
+.donut-chart{width:140px;height:140px;border-radius:50%;position:relative}
+.donut-labels{display:flex;flex-direction:column;gap:.5rem}.dl-item{display:flex;align-items:center;gap:.4rem;font-size:.85rem}
+.dl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.topic-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;transition:all .2s}.topic-card:hover{border-color:rgba(108,92,231,.3)}
+.topic-hd{display:flex;justify-content:space-between;align-items:start;margin-bottom:.5rem}
+.topic-hd h4{font-size:.95rem;flex:1;margin-right:.5rem}
+.topic-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin:.5rem 0}
+.category-tag{padding:.15rem .5rem;border-radius:5px;font-size:.72rem;font-weight:600}.cat-vip{background:rgba(253,203,110,.15);color:#fdcb6e}.cat-fashion{background:rgba(255,159,67,.15);color:#ffa502}.cat-tech{background:rgba(116,185,255,.15);color:#74b9ff}.cat-life{background:rgba(0,206,201,.15);color:var(--sec)}.cat-business{background:rgba(108,92,231,.15);color:#a29bfe}
+.topic-desc{font-size:.82rem;color:var(--dim);line-height:1.5}
+.topic-foot{display:flex;justify-content:space-between;align-items:center;margin-top:.8rem;padding-top:.6rem;border-top:1px solid var(--border);font-size:.78rem;color:var(--dim)}
+.filter-bar{display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap;align-items:center}
+.filter-chip{padding:.35rem .8rem;border-radius:8px;font-size:.8rem;background:rgba(255,255,255,.04);border:1px solid var(--border);cursor:pointer;color:var(--dim);transition:all .2s}.filter-chip:hover,.filter-chip.active{border-color:var(--pri);color:var(--txt);background:rgba(108,92,231,.1)}
+.search-input{padding:.45rem .8rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--txt);font-size:.85rem;width:200px;outline:none}.search-input:focus{border-color:var(--pri)}
+.toast{position:fixed;top:1.5rem;right:1.5rem;padding:.8rem 1.5rem;border-radius:10px;font-size:.88rem;z-index:999;animation:slideIn .3s ease;max-width:360px}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast-success{background:rgba(0,184,148,.9);color:#fff}.toast-info{background:rgba(108,92,231,.9);color:#fff}.toast-error{background:rgba(255,80,80,.9);color:#fff}.toast-warn{background:rgba(253,203,110,.9);color:#333}
+.empty-state{text-align:center;padding:3rem;color:var(--dim)}.empty-state .icon{font-size:3rem;margin-bottom:1rem}
+.action-btns{display:flex;gap:.3rem}
+.ai-score-detail{margin-top:.8rem;padding:.8rem;background:var(--bg);border-radius:8px;font-size:.82rem;line-height:1.6}
+.ai-score-detail .score-breakdown{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem}
+.ai-score-detail .score-item{display:flex;justify-content:space-between}
+.ai-score-detail .score-item span:first-child{color:var(--dim)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--sec);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{display:inline-flex;align-items:center;gap:.5rem;color:var(--dim);font-size:.85rem}
+.key-status{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;padding:.2rem .5rem;border-radius:4px}
+.key-ok{background:rgba(0,184,148,.15);color:var(--done)}
+.key-off{background:rgba(255,80,80,.15);color:#ff6b6b}
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div class="side-brand"><h1>⚡ 内容工厂</h1><span>Ruoteng AI Content Factory</span></div>
+  <div class="side-nav">
+    <div class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span>数据看板</div>
+    <div class="nav-item" data-page="workflow"><span class="nav-icon">🔄</span>工作流</div>
+    <div class="nav-item" data-page="topics"><span class="nav-icon">💡</span>选题库</div>
+    <div class="nav-item" data-page="ai-scoring"><span class="nav-icon">🎯</span>AI评分</div>
+    <div class="nav-item" data-page="copywriter"><span class="nav-icon">✍️</span>文案生成</div>
+    <div class="nav-item" data-page="distribution"><span class="nav-icon">📡</span>分发中心</div>
+    <div class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span>设置</div>
+  </div>
+  <div class="side-footer">了解人工智能科技云南有限公司</div>
+</nav>
+<div class="main">
+  <div class="topbar"><h2 id="pageTitle">数据看板</h2><div class="topbar-actions"><button class="btn btn-pri btn-sm" onclick="openAddModal()">+ 新建选题</button></div></div>
+  <div class="content">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="dashStats"></div>
+      <div class="chart-section">
+        <div class="card"><div class="card-hd"><h3>📈 发布趋势</h3></div><div class="card-bd"><div class="bar-chart" id="trendChart"></div></div></div>
+        <div class="card"><div class="card-hd"><h3>📱 平台分布</h3></div><div class="card-bd"><div class="donut-wrap" id="platChart"></div></div></div>
+      </div>
+      <div class="card"><div class="card-hd"><h3>🔥 最近发布</h3></div><div class="card-bd"><table class="tbl" id="recentTable"></table></div></div>
+    </div>
+    <!-- WORKFLOW -->
+    <div class="page" id="page-workflow">
+      <div class="kanban" id="kanbanBoard"></div>
+    </div>
+    <!-- TOPICS -->
+    <div class="page" id="page-topics">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:.8rem">
+        <div style="display:flex;gap:.5rem;align-items:center"><input class="search-input" placeholder="搜索选题..." id="topicSearch" oninput="renderTopics()"><div class="filter-bar" id="catFilter"></div></div>
+        <button class="btn btn-pri btn-sm" onclick="openAddModal()">+ 新建选题</button>
+      </div>
+      <div class="topic-grid" id="topicGrid"></div>
+    </div>
+    <!-- AI SCORING -->
+    <div class="page" id="page-ai-scoring">
+      <div class="card" style="margin-bottom:1.5rem"><div class="card-hd"><h3>🎯 AI智能选题评分</h3><span style="font-size:.8rem;color:var(--dim)" id="aiKeyStatus"></span></div>
+      <div class="card-bd">
+        <p style="color:var(--dim);margin-bottom:1rem">输入选题标题和描述，AI将从多个维度分析并打分（0-100），给出优化建议。</p>
+        <div class="form-group"><label>选题标题</label><input class="form-input" id="scTitle" placeholder="例：夏日平价防晒衣测评合集"></div>
+        <div class="form-group"><label>一句话描述 / 核心卖点</label><textarea class="form-input textarea" id="scDesc" rows="3" placeholder="简述这个选题的核心内容和目标受众"></textarea></div>
+        <div class="form-group"><label>目标平台</label><select class="form-input select" id="scPlat"><option value="xhs">小红书</option><option value="dy">抖音</option><option value="yt">YouTube</option><option value="multi">多平台通用</option></select></div>
+        <div style="text-align:right"><button class="btn btn-pri" id="scoreBtn" onclick="aiScoreTopic()">🎯 AI评分</button></div>
+      </div></div>
+      <div id="scoreResult" style="display:none"><div class="card"><div class="card-hd"><h3>评分报告</h3><span style="font-size:.8rem;color:var(--dim)">由AI实时生成</span></div><div class="card-bd" id="scoreOutput"></div></div></div>
+    </div>
+    <!-- COPYWRITER -->
+    <div class="page" id="page-copywriter">
+      <div class="card" style="margin-bottom:1.5rem"><div class="card-hd"><h3>✍️ AI智能文案生成</h3><span style="font-size:.8rem;color:var(--dim)" id="cpKeyStatus"></span></div>
+      <div class="card-bd">
+        <div class="form-row">
+          <div class="form-group"><label>产品名称 / 选题名称</label><input class="form-input" id="cpName" placeholder="例：便携式榨汁杯"></div>
+          <div class="form-group"><label>目标平台</label><select class="form-input select" id="cpPlat"><option value="xhs">小红书</option><option value="dy">抖音</option><option value="yt">YouTube Shorts</option></select></div>
+        </div>
+        <div class="form-group"><label>核心卖点 / 关键信息（逗号分隔）</label><input class="form-input" id="cpSell" placeholder="USB充电,迷你便携,一键清洗,食品级材质"></div>
+        <div class="form-group"><label>风格偏好</label><select class="form-input select" id="cpStyle"><option value="闺蜜分享风">闺蜜分享风</option><option value="专业测评风">专业测评风</option><option value="痛点场景风">痛点场景风</option><option value="干货知识风">干货知识风</option><option value="故事种草风">故事种草风</option></select></div>
+        <div style="text-align:right"><button class="btn btn-pri" id="genBtn" onclick="generateCopy()">✨ 生成文案</button></div>
+      </div></div>
+      <div id="copyResult" style="display:none"><div class="card"><div class="card-hd"><h3>生成的文案</h3><button class="btn btn-sm btn-out" onclick="copyText()">📋 复制全部</button></div><div class="card-bd" id="copyOutput"></div></div></div>
+    </div>
+    <!-- DISTRIBUTION -->
+    <div class="page" id="page-distribution">
+      <div class="card"><div class="card-hd"><h3>📡 多平台分发管理</h3><button class="btn btn-sm btn-out" onclick="exportDistData()">导出表格</button></div>
+      <div class="card-bd"><table class="tbl" id="distTable"><thead><tr><th>选题标题</th><th>状态</th><th>小红书</th><th>抖音</th><th>YouTube</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="distBody"></tbody></table></div></div>
+    </div>
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="card" style="max-width:650px"><div class="card-hd"><h3>⚙️ 系统设置</h3></div><div class="card-bd">
+        <div class="form-group"><label>🔑 OpenRouter API Key</label><input class="form-input" id="setApiKey" type="password" placeholder="sk-or-v1-xxxxxxxx"><br><span style="font-size:.75rem;color:var(--dim)">用于AI文案生成和选题评分。<a href="https://openrouter.ai/keys" target="_blank">去获取 →</a></span></div>
+        <div class="form-group"><label>🤖 推荐模型</label><select class="form-input select" id="setModel"><option value="anthropic/claude-sonnet-4.6">Claude Sonnet 4.6（强推理、长文本）</option><option value="google/gemini-2.0-flash">Gemini 2.0 Flash（快、便宜）</option><option value="meta-llama/llama-3.3-70b-versatile">Llama 3.3 70B（开源最强）</option><option value="microsoft/wizardlm-2-8x22b">WizardLM 2 8x22B（中文友好）</option></select></div>
+        <div class="form-group"><label>默认团队名称</label><input class="form-input" id="setTeam" value="若腾AI破局"></div>
+        <div class="form-group"><label>内容质量及格线</label><input class="form-input" id="setMinScore" type="number" value="65" style="width:120px"></div>
+        <div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap">
+          <button class="btn btn-pri" onclick="saveSettings()">保存设置</button>
+          <button class="btn btn-out" onclick="loadDemoData()">🔄 恢复演示数据</button>
+          <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空数据</button>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modalOverlay"><div class="modal"><div class="modal-hd"><h3 id="modalTitle">新建选题</h3><span class="modal-cl" onclick="closeModal()">✕</span></div>
+<div class="modal-bd">
+  <div class="form-group"><label>选题标题 *</label><input class="form-input" id="fTitle" placeholder="输入选题标题"></div>
+  <div class="form-row">
+    <div class="form-group"><label>分类</label><select class="form-input select" id="fCat"><option value="vip">性价比好物</option><option value="fashion">时尚穿搭</option><option value="tech">数码科技</option><option value="life">生活方式</option><option value="business">商业思维</option></select></div>
+    <div class="form-group"><label>优先级</label><select class="form-input select" id="fPrio"><option value="high">🔴 高</option><option value="mid" selected>🟡 中</option><option value="low">🟢 低</option></select></div>
+  </div>
+  <div class="form-group"><label>一句话描述</label><textarea class="form-input textarea" id="fDesc" rows="2" placeholder="简述这个选题的核心内容"></textarea></div>
+  <div class="form-row">
+    <div class="form-group"><label>目标平台</label><select class="form-input select" id="fPlat"><option value="xhs">小红书</option><option value="dy">抖音</option><option value="yt">YouTube</option><option value="multi">多平台</option></select></div>
+    <div class="form-group"><label>预估质量分</label><input class="form-input" id="fScore" type="number" min="0" max="100" value="75" style="width:100px"></div>
+  </div>
+  <div class="form-group"><label>素材标签（逗号分隔）</label><input class="form-input" id="fTags" placeholder="例：好物,测评,夏季"></div>
+  <div style="text-align:right;margin-top:1rem"><button class="btn btn-out" onclick="closeModal()" style="margin-right:.5rem">取消</button><button class="btn btn-pri" onclick="saveTopic()">保存</button></div>
+</div></div></div>
+<script>
+// ═══════════ CONSTANTS ═══════════
+const CATEGORIES={vip:{name:'性价比好物',cls:'vip'},fashion:{name:'时尚穿搭',cls:'fashion'},tech:{name:'数码科技',cls:'tech'},life:{name:'生活方式',cls:'life'},business:{name:'商业思维',cls:'business'}};
+const PLAT_NAMES={xhs:'小红书',dy:'抖音',yt:'YouTube'};
+const STATUS_NAMES={draft:'草稿',writing:'创作中',review:'审核中',published:'已发布',track:'数据追踪'};
+const STATUSES=['draft','writing','review','published','track'];
+
+// ═══════════ STATE ═══════════
+let state={topics:[],settings:{apiKey:'',model:'anthropic/claude-sonnet-4.6',team:'若腾AI破局',minScore:65},editingId:null};
+
+function load(){try{const d=localStorage.getItem('cf_v2');if(d){const p=JSON.parse(d);state={...state,...p}}}catch(e){}}
+function save(){localStorage.setItem('cf_v2',JSON.stringify({topics:state.topics,settings:state.settings}))}
+function genId(){return 't_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
+
+// ═══════════ DEMO DATA ═══════════
+const DEMO=[
+{id:genId(),title:'夏日平价防晒衣测评合集',desc:'对比5款百元内防晒衣的UPF值和透气性，帮用户省钱避雷',category:'fashion',priority:'high',score:88,platform:'xhs',status:'published',tags:['防晒衣','夏季必备','测评'],created:'2025-04-15',platforms:{xhs:{status:'published',publishDate:'2025-04-16',views:'2.3w',likes:'1890'},dy:{status:'published',publishDate:'2025-04-17',views:'5.6w',likes:'4200'},yt:{status:'',publishDate:'',views:'',likes:''}},ai_report:''},
+{id:genId(),title:'2025年个人副业搞钱方法TOP10',desc:'整理当前最适合普通人的线上副业，含收入数据和实操步骤',category:'business',priority:'high',score:92,platform:'multi',status:'published',tags:['副业','搞钱','自由职业'],created:'2025-04-14',platforms:{xhs:{status:'published',publishDate:'2025-04-14',views:'4.1w',likes:'3200'},dy:{status:'published',publishDate:'2025-04-15',views:'8.9w',likes:'6700'},yt:{status:'published',publishDate:'2025-04-16',views:'1.2w',likes:'890'}},ai_report:''},
+{id:genId(),title:'国产AI工具全面横评',desc:'10款免费AI工具实测，哪款最值得推荐？含功能对比表',category:'tech',priority:'high',score:85,platform:'multi',status:'review',tags:['AI工具','评测','效率工具'],created:'2025-04-18',platforms:{xhs:{status:'review',publishDate:'',views:'',likes:''},dy:{status:'',publishDate:'',views:'',likes:''},yt:{status:'',publishDate:'',views:'',likes:''}},ai_report:''},
+{id:genId(),title:'租房改造｜1000元改造出租屋卧室',desc:'低成本改造方案，前后对比图+购物清单全公开',category:'life',priority:'mid',score:71,platform:'multi',status:'writing',tags:['租房改造','卧室','低成本装修'],created:'2025-04-19',platforms:{xhs:{status:'draft',publishDate:'',views:'',likes:''},dy:{status:'',publishDate:'',views:'',likes:''},yt:{status:'',publishDate:'',views:'',likes:''}},ai_report:''},
+{id:genId(),title:'无线降噪耳机选购指南2025',desc:'从200元到2000元，各价位降噪耳机怎么选？',category:'tech',priority:'mid',score:73,platform:'multi',status:'writing',tags:['耳机','降噪','数码配件'],created:'2025-04-20',platforms:{xhs:{status:'draft',publishDate:'',views:'',likes:''},dy:{status:'draft',publishDate:'',views:'',likes:''},yt:{status:'',publishDate:'',views:'',likes:''}},ai_report:''},
+{id:genId(),title:'如何用AI做自媒体？我的完整工作流',desc:'从零到月入过万，用AI自动化运营小红书和YouTube',category:'business',priority:'high',score:90,platform:'multi',status:'published',tags:['AI创业','自媒体','工作流'],created:'2025-04-10',platforms:{xhs:{status:'published',publishDate:'2025-04-10',views:'5.2w',likes:'5600'},dy:{status:'published',publishDate:'2025-04-11',views:'12.3w',likes:'9800'},yt:{status:'published',publishDate:'2025-04-12',views:'3.4w',likes:'2100'}},ai_report:''},
+{id:genId(),title:'新手如何做跨境电商选品',desc:'跨境电商选品的底层逻辑+3个低成本起步策略',category:'business',priority:'high',score:82,platform:'yt',status:'draft',tags:['跨境电商','选品','电商创业'],created:'2025-04-22',platforms:{xhs:{status:'',publishDate:'',views:'',likes:''},dy:{status:'',publishDate:'',views:'',likes:''},yt:{status:'draft',publishDate:'',views:'',likes:''}},ai_report:''},
+];
+
+function loadDemoData(){state.topics=DEMO.map(t=>({...t,id:t.id||genId()}));save();renderAll();showToast('已恢复演示数据','success')}
+function clearAllData(){if(confirm('确定清空所有数据？')){state.topics=[];save();renderAll();showToast('数据已清空','info')}}
+
+// ═══════════ RENDERING ═══════════
+function renderAll(){updateKeyStatus();renderDashboard();renderKanban();renderTopics();renderDistribution();renderSettings()}
+function updateKeyStatus(){
+  const hasApiKey=!!state.settings.apiKey;
+  document.querySelectorAll('#aiKeyStatus,#cpKeyStatus').forEach(el=>{el.innerHTML=hasApiKey?'<span class="key-status key-ok">✅ AI已连接</span>':'<span class="key-status key-off">❌ 未配置API Key，请前往设置</span>'});
+}
+function parseViews(v){if(!v)return 0;if(typeof v==='string'&&v.includes('w'))return parseFloat(v)*10000;return parseInt(v)||0}
+function formatNum(n){if(!n&&n!==0)return'0';const s=String(n);if(s.includes('w'))return n;if(+n>=10000)return(n/10000).toFixed(1)+'w';return String(n)}
+
+function renderDashboard(){
+  const total=state.topics.length,pub=state.topics.filter(t=>t.status==='published').length,wrk=state.topics.filter(t=>['writing','review'].includes(t.status)).length;
+  let totalViews=0,totalLikes=0;
+  state.topics.forEach(t=>{Object.values(t.platforms).forEach(p=>{totalViews+=parseViews(p.views)||0;totalLikes+=(parseInt(p.likes)||0)})});
+  const monthNames=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const months={};state.topics.forEach(t=>{if(t.created){const m=new Date(t.created).getMonth();months[m]=(months[m]||0)+1}});
+  const mx=Math.max(...Object.values(months),1);
+  const curMonth=new Date().getMonth();
+  document.getElementById('dashStats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">总选题数</div><div class="stat-val">${total}</div><div class="stat-sub">本月新增 ${months[curMonth]||0}</div></div>
+    <div class="stat-card"><div class="stat-label">已发布</div><div class="stat-val">${pub}</div><div class="stat-sub">通过率 ${(pub/Math.max(total,1)*100).toFixed(0)}%</div></div>
+    <div class="stat-card"><div class="stat-label">创作中</div><div class="stat-val">${wrk}</div><div class="stat-sub">待审核 ${(state.topics.filter(t=>t.status==='review').length)}</div></div>
+    <div class="stat-card"><div class="stat-label">总互动量</div><div class="stat-val">${formatNum(totalLikes)}</div><div class="stat-sub">曝光 ${formatNum(totalViews)}</div></div>`;
+  document.getElementById('trendChart').innerHTML=Object.entries(months).sort(([a],[b])=>a-b).map(([m,c])=>`<div class="bar-row"><div class="bar-label">${monthNames[+m]}</div><div class="bar-track"><div class="bar-fill" style="width:${c/mx*100}%;background:linear-gradient(90deg,var(--pri),var(--sec))">${c}</div></div></div>`).join('')||'<div class="empty-state"><div class="icon">📈</div>暂无趋势数据</div>';
+  const px=state.topics.filter(t=>t.platforms.xhs.status==='published').length,py=state.topics.filter(t=>t.platforms.dy.status==='published').length,pz=state.topics.filter(t=>t.platforms.yt.status==='published').length,pt=px+py+pz;
+  if(pt===0)document.getElementById('platChart').innerHTML='<div class="empty-state">暂无已发布内容</div>';
+  else document.getElementById('platChart').innerHTML=`<div class="donut-chart" style="background:conic-gradient(var(--xhs) 0deg ${px/pt*360}deg, var(--dy) ${px/pt*360}deg ${(px+py)/pt*360}deg, var(--yt) ${(px+py)/pt*360}deg 360deg)"><div style="position:absolute;inset:30%;border-radius:50%;background:var(--card)"></div></div><div class="donut-labels"><div class="dl-item"><div class="dl-dot" style="background:var(--xhs)"></div>小红书 ${px}</div><div class="dl-item"><div class="dl-dot" style="background:var(--dy)"></div>抖音 ${py}</div><div class="dl-item"><div class="dl-dot" style="background:var(--yt)"></div>YouTube ${pz}</div></div>`;
+  const sorted=[...state.topics].sort((a,b)=>new Date(b.created||0)-new Date(a.created||0)).slice(0,5);
+  document.getElementById('recentTable').innerHTML=`<thead><tr><th>选题</th><th>平台</th><th>状态</th><th>质量分</th><th>创建日期</th></tr></thead><tbody>${sorted.map(t=>`<tr><td>${t.title}</td><td><span class="platform-${t.platform}" style="font-size:.75rem">${PLAT_NAMES[t.platform]||'多平台'}</span></td><td><span class="badge bg-${t.status}">${STATUS_NAMES[t.status]}</span></td><td><div class="score-bar"><div class="score-fill" style="width:${t.score||0}%"></div></div> ${t.score||0}</td><td>${t.created||'-'}</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--dim)">暂无选题</td></tr>'}</tbody>`;
+}
+
+function renderKanban(){
+  const board=document.getElementById('kanbanBoard');
+  board.innerHTML=STATUSES.map(s=>{const items=state.topics.filter(t=>t.status===s);return`<div class="kol"><div class="kol-hd"><span>${STATUS_NAMES[s]}</span><span class="kol-count">${items.length}</span></div><div class="kol-body">${items.map(t=>`<div class="kan-card" onclick="editTopic('${t.id}')"><h4>${t.title}</h4><div class="kan-meta"><span class="kan-plat platform-${t.platform}" style="font-size:.72rem">${PLAT_NAMES[t.platform]||'多平台'}</span><span>${t.priority==='high'?'🔴':t.priority==='mid'?'🟡':'🟢'}</span><span class="kan-score">${t.score||0}分</span></div></div>`).join('')}</div></div>`}).join('');
+}
+
+function renderTopics(){
+  let list=[...state.topics];const q=(document.getElementById('topicSearch')?.value||'').toLowerCase();
+  if(q)list=list.filter(t=>t.title.toLowerCase().includes(q)||(t.desc||'').toLowerCase().includes(q)||(t.tags||[]).some(tag=>tag.toLowerCase().includes(q)));
+  const cfEl=document.getElementById('catFilter');
+  if(cfEl&&!cfEl.children.length){Object.entries(CATEGORIES).forEach(([k,v])=>{const chip=document.createElement('span');chip.className='filter-chip';chip.textContent=v.name;chip.dataset.cat=k;chip.onclick=()=>{cfEl.querySelectorAll('.filter-chip').forEach(c=>c.classList.toggle('active'));const active=cfEl.querySelector('.filter-chip.active');renderFiltered(active?active.dataset.cat:null)};cfEl.appendChild(chip)})}
+  const catAct=document.querySelector('#catFilter .filter-chip.active');
+  if(catAct)list=list.filter(t=>t.category===catAct.dataset.cat);
+  list.sort((a,b)=>(b.score||0)-(a.score||0));renderFiltered(null,list);
+}
+function renderFiltered(cat,list){
+  if(!list){let l=[...state.topics];const q=(document.getElementById('topicSearch')?.value||'').toLowerCase();if(q)l=l.filter(t=>t.title.toLowerCase().includes(q)||(t.desc||'').toLowerCase().includes(q)||(t.tags||[]).some(tag=>tag.toLowerCase().includes(q)));if(cat)l=l.filter(t=>t.category===cat);l.sort((a,b)=>(b.score||0)-(a.score||0));list=l;}
+  document.getElementById('topicGrid').innerHTML=list.map(t=>`<div class="topic-card"><div class="topic-hd"><h4>${t.title}</h4><span class="badge bg-${t.status}">${STATUS_NAMES[t.status]}</span></div><div class="topic-tags"><span class="category-tag cat-${t.category}">${CATEGORIES[t.category]?.name||t.category}</span><span class="category-tag cat-${t.priority}">${t.priority==='high'?'🔴高':t.priority==='mid'?'🟡中':'🟢低'}</span></div><div class="topic-desc">${t.desc||'暂无描述'}</div>${t.ai_report?'<div style="margin-top:.5rem"><button class="btn btn-sm btn-out" onclick="viewAiReport(\''+t.id+'\')" style="font-size:.72rem;padding:.2rem .5rem">🎯 查看AI评分详情</button></div>':''}<div class="topic-foot"><span>${t.created||'未设置'}</span><div class="action-btns"><span style="font-size:.75rem;color:var(--dim)">质量 ${(t.score||0)}分</span><button class="btn btn-sm btn-out" onclick="editTopic('${t.id}')" style="padding:.2rem .5rem;font-size:.72rem">编辑</button><button class="btn btn-sm btn-danger" onclick="deleteTopic('${t.id}')" style="padding:.2rem .5rem;font-size:.72rem">删除</button></div></div></div>`).join('')||'<div class="empty-state"><div class="icon">💡</div>暂无选题，点击上方"+新建"添加</div>';
+}
+
+function renderDistribution(){
+  const pub=state.topics.filter(t=>t.status==='published'||t.status==='track');
+  document.getElementById('distBody').innerHTML=pub.map(t=>`<tr><td>${t.title}</td><td><span class="badge bg-${t.status}">${STATUS_NAMES[t.status]}</span></td><td>${t.platforms.xhs.status?'✅ '+t.platforms.xhs.views:'—'}</td><td>${t.platforms.dy.status?'✅ '+t.platforms.dy.views:'—'}</td><td>${t.platforms.yt.status?'✅ '+t.platforms.yt.views:'—'}</td><td>${t.platforms.xhs.publishDate||t.platforms.dy.publishDate||'—'}</td><td><button class="btn btn-sm btn-out" onclick="editDist('${t.id}')" style="padding:.2rem .5rem;font-size:.72rem">更新数据</button></td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--dim)">暂无已发布内容</td></tr>';
+}
+
+function renderSettings(){document.getElementById('setApiKey').value=state.settings.apiKey||'';document.getElementById('setModel').value=state.settings.model;document.getElementById('setTeam').value=state.settings.team;document.getElementById('setMinScore').value=state.settings.minScore}
+
+// ═══════════ ACTIONS ═══════════
+function openAddModal(){state.editingId=null;document.getElementById('modalTitle').textContent='新建选题';document.getElementById('fTitle').value='';document.getElementById('fDesc').value='';document.getElementById('fScore').value=75;document.getElementById('fTags').value='';document.getElementById('modalOverlay').classList.add('show')}
+function editTopic(id){const t=state.topics.find(x=>x.id===id);if(!t)return;state.editingId=id;document.getElementById('modalTitle').textContent='编辑选题';document.getElementById('fTitle').value=t.title;document.getElementById('fDesc').value=t.desc||'';document.getElementById('fCat').value=t.category;document.getElementById('fPrio').value=t.priority;document.getElementById('fScore').value=t.score||0;document.getElementById('fPlat').value=t.platform||'multi';document.getElementById('fTags').value=(t.tags||[]).join(', ');document.getElementById('modalOverlay').classList.add('show')}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('show');state.editingId=null}
+
+function initPlatforms(plat){const base={status:'',publishDate:'',views:'',likes:''};if(plat==='multi')return{xhs:{...base},dy:{...base},yt:{...base}};return{xhs:plat==='xhs'?{status:'draft',publishDate:'',views:'',likes:''}:{...base},dy:plat==='dy'?{status:'draft',publishDate:'',views:'',likes:''}:{...base},yt:plat==='yt'?{status:'draft',publishDate:'',views:'',likes:''}:{...base}}}
+
+async function saveTopic(){
+  const title=document.getElementById('fTitle').value.trim();if(!title){showToast('请填写选题标题','info');return}
+  const tags=document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const plat=document.getElementById('fPlat').value;
+  const platforms=state.editingId?(state.topics.find(t=>t.id===state.editingId)?.platforms||initPlatforms(plat)):initPlatforms(plat);
+  const topic={id:state.editingId||(state.editingId=genId()),title,desc:document.getElementById('fDesc').value.trim(),category:document.getElementById('fCat').value,priority:document.getElementById('fPrio').value,score:parseInt(document.getElementById('fScore').value)||70,platform:plat,tags,created:state.editingId&&state.editingId.startsWith('t_')?new Date().toISOString().split('T')[0]:new Date().toISOString().split('T')[0],status:'draft',platforms,ai_report:''};
+  if(state.editingId&&!state.editingId.startsWith('t_')){const idx=state.topics.findIndex(x=>x.id===state.editingId);if(idx!==-1){Object.assign(state.topics[idx],topic);topic=state.topics[idx]}}
+  if(!state.topics.find(t=>t.id===topic.id)){state.topics.push(topic)}else{const idx=state.topics.findIndex(t=>t.id===topic.id);if(idx!==-1)state.topics[idx]=topic}
+  // Auto score with AI if key is set
+  if(state.settings.apiKey&&topic.ai_report){try{topic=await aiDoScore(topic.title,topic.desc,plat,true)}catch(e){}}
+  state.editingId=null;save();closeModal();renderAll();showToast(state.editingId?'选题已更新':'选题已创建','success')
+}
+async function deleteTopic(id){if(!confirm('确认删除？'))return;state.topics=state.topics.filter(t=>t.id!==id);save();renderAll();showToast('已删除','info')}
+function editDist(id){const t=state.topics.find(x=>x.id===id);if(!t)return;const pv=prompt('请输入浏览量（如 2.3w / 5600）：',t.platforms.xhs.views);if(pv!==null){t.platforms.xhs.views=pv;t.platforms.xhs.status='published';save();renderAll();showToast('数据已更新','success')}}
+function viewAiReport(id){const t=state.topics.find(x=>x.id===id);if(!t)return;const r=document.getElementById('scoreResult');r.style.display='block';document.getElementById('scoreOutput').innerHTML=t.ai_report||'<div class="empty-state">暂无评分报告</div>'}
+
+function copyText(){navigator.clipboard.writeText(document.getElementById('copyOutput').innerText);showToast('已复制到剪贴板','success')}
+function saveSettings(){
+  const newKey=document.getElementById('setApiKey').value.trim();
+  if(newKey!==state.settings.apiKey){
+    if(newKey.length<10){showToast('API Key格式不正确','error');return}
+    state.settings.apiKey=newKey;showToast('API Key已保存','success');
+  }
+  state.settings.model=document.getElementById('setModel').value;
+  state.settings.team=document.getElementById('setTeam').value;
+  state.settings.minScore=parseInt(document.getElementById('setMinScore').value)||65;
+  save();updateKeyStatus();showToast('设置已保存','success')
+}
+function exportDistData(){const pub=state.topics.filter(t=>t.status==='published'||t.status==='track');let csv='选题标题,小红书,抖音,YouTube\n';pub.forEach(t=>{csv+=`"${t.title}","${t.platforms.xhs.views}","${t.platforms.dy.views}","${t.platforms.yt.views}"\n`});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='content-factory-export.csv';a.click();showToast('数据已导出','success')}
+
+// ═══════════ NAVIGATION ═══════════
+document.querySelectorAll('.nav-item').forEach(n=>{n.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));n.classList.add('active');const pg=n.dataset.page;document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+pg).classList.add('active');const titles={dashboard:'数据看板',workflow:'工作流',topics:'选题库','ai-scoring':'AI评分',copywriter:'文案模板',distribution:'分发中心',settings:'设置'};document.getElementById('pageTitle').textContent=titles[pg]||pg;if(pg==='dashboard')renderDashboard();if(pg==='workflow')renderKanban();if(pg==='topics')renderTopics();if(pg==='distribution')renderDistribution()})});
+
+// ═══════════ OPENROUTER AI ═══════════
+async function aiCall(systemPrompt,userPrompt,model){
+  const apiKey=state.settings.apiKey;const modelName=model||state.settings.model||'anthropic/claude-sonnet-4.6';
+  if(!apiKey){showToast('请先在设置中配置OpenRouter API Key','error');return null}
+  try{
+    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','HTTP-Referer':window.location.href,'X-Title':'内容工厂'},body:JSON.stringify({model:modelName,messages:[{role:'system',content:systemPrompt},{role:'user',content:userPrompt}],temperature:0.7,max_tokens:2000})});
+    if(!res.ok){const err=await res.text();throw new Error(`API错误 ${res.status}: ${err.slice(0,200)}`)}
+    const data=await res.json();return data.choices?.[0]?.message?.content||null;
+  }catch(e){showToast('AI调用失败: '+e.message,'error');console.error(e);return null}
+}
+
+// ═══════════ AI SCORING ═══════════
+async function aiScoreTopic(){
+  const title=document.getElementById('scTitle').value.trim();const desc=document.getElementById('scDesc').value.trim();const plat=document.getElementById('scPlat').value;
+  if(!title){showToast('请填写选题标题','info');return}
+  const btn=document.getElementById('scoreBtn');btn.classList.add('btn-loading');btn.innerHTML='<span class="spinner"></span> AI评分中...';
+  document.getElementById('scoreResult').style.display='block';
+  document.getElementById('scoreOutput').innerHTML='<div class="loading-text"><span class="spinner"></span> 正在分析选题...</div>';
+  const sysPrompt=`你是一个资深的内容策划专家，擅长评估选题的爆款潜力。请用中文回答。
+你需要从以下5个维度对选题进行评分（每项0-20分）：
+1. 市场热度 — 当前是否热门/有趋势性
+2. 差异化程度 — 与同类内容的区分度
+3. 受众吸引力 — 目标用户是否会感兴趣
+4. 可执行性 — 作为内容创作者能否轻松完成
+5. 变现潜力 — 带货/广告/引流的能力
+
+请按以下格式返回JSON（不要有多余文字）：
+{"overall": 总分, "dimensions": {"market_heat": 分数, "differentiation": 分数, "audience_appeal": 分数, "feasibility": 分数, "monetization": 分数}, "reasons": ["维度1原因", "维度2原因"], "suggestions": ["改进建议1", "改进建议2"], "tips_for_platform": "针对该平台的特别建议"}`;
+  const userPrompt=`【选题标题】${title}\n【选题描述】${desc||'无'}\n【目标平台】${PLAT_NAMES[plat]}；\n\n请对该选题进行全面评估并打分。`;
+  const result=await aiCall(sysPrompt,userPrompt);
+  btn.classList.remove('btn-loading');btn.innerHTML='🎯 AI评分';
+  if(!result){document.getElementById('scoreOutput').innerHTML='<div class="empty-state">评分失败，请检查API Key和网络</div>';return}
+  // Parse JSON from response
+  let parsed;try{parsed=JSON.parse(result.replace(/^```json?\n?|```\s*$/g,'').trim())}catch(e){parsed=null}
+  if(parsed){
+    const score=parsed.overall||0;
+    document.getElementById('scoreOutput').innerHTML=`
+      <div style="text-align:center;margin-bottom:1.5rem"><div style="font-size:3.5rem;font-weight:800;background:linear-gradient(135deg,var(--pri),var(--sec));-webkit-background-clip:text;-webkit-text-fill-color:transparent">${score}</div><div style="font-size:1.1rem;color:var(--dim);margin-top:.3rem">综合得分</div></div>
+      <div class="ai-score-detail"><h4 style="margin-bottom:.6rem">📊 维度拆解</h4><div class="score-breakdown">
+      <div class="score-item"><span>🔥 市场热度</span><span>${parsed.dimensions?.market_heat??0}/20</span></div>
+      <div class="score-item"><span>🎯 差异化程度</span><span>${parsed.dimensions?.differentiation??0}/20</span></div>
+      <div class="score-item"><span>❤️ 受众吸引力</span><span>${parsed.dimensions?.audience_appeal??0}/20</span></div>
+      <div class="score-item"><span>🛠️ 可执行性</span><span>${parsed.dimensions?.feasibility??0}/20</span></div>
+      <div class="score-item"><span>💰 变现潜力</span><span>${parsed.dimensions?.monetization??0}/20</span></div>
+      </div></div>
+      ${parsed.reasons&&parsed.reasons.length?'<div class="ai-score-detail" style="margin-top:.6rem"><h4 style="margin-bottom:.4rem">💡 优势分析</h4>'+parsed.reasons.map(r=>'<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">• '+r+'</div>').join('')+'</div>':''}
+      ${parsed.suggestions&&parsed.suggestions.length?'<div class="ai-score-detail" style="margin-top:.6rem"><h4 style="margin-bottom:.4rem">🔧 优化建议</h4>'+parsed.suggestions.map(s=>'<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">• '+s+'</div>').join('')+'</div>':''}
+      ${parsed.tips_for_platform?`<div class="ai-score-detail" style="margin-top:.6rem"><h4 style="margin-bottom:.4rem">📱 平台建议</h4><p style="color:var(--txt)">${parsed.tips_for_platform}</p></div>`:''}`;
+    // Update current topic score if editing
+    if(state.editingId){const t=state.topics.find(x=>x.id===state.editingId);if(t){t.score=score;t.ai_report=document.getElementById('scoreOutput').innerHTML}}
+  }else{document.getElementById('scoreOutput').innerHTML=`<div class="ai-score-detail"><pre style="white-space:pre-wrap;font-family:inherit;color:var(--txt)">${result}</pre></div>`}
+  showToast('评分完成！','success')
+}
+
+// ═══════════ AI COPYWRITER ═══════════
+async function generateCopy(){
+  const name=document.getElementById('cpName').value.trim();const sell=document.getElementById('cpSell').value.trim();const plat=document.getElementById('cpPlat').value;const style=document.getElementById('cpStyle').value;
+  if(!name){showToast('请输入产品名称/选题','info');return}
+  if(!state.settings.apiKey){showToast('请先在设置中配置OpenRouter API Key','error');return}
+  const btn=document.getElementById('genBtn');btn.classList.add('btn-loading');btn.innerHTML='<span class="spinner"></span> AI生成中...';
+  const sysPrompt=`你是一位顶级社交媒体文案专家，深谙各平台爆款密码。请根据产品特点和平台特性，生成高质量的推广文案。
+输出格式要求：
+## 【标题】(吸引眼球的标题)
+
+## 【正文】(正文内容，适当使用emoji)
+
+## 【话题标签】(相关Hashtag)
+
+注意：
+1. 不同平台有不同调性，请针对性调整语气和长度
+2. 开头3秒必须抓住注意力
+3. 善用痛点+解决方案+行动号召的结构
+4. 口语化，像真人写的`;
+  const platTip={xhs:'小红书风格：闺蜜语气，多用emoji，注重实用性和种草感，字数150-300字，标题要有情绪张力',dy:'抖音风格：节奏快，开头设悬念，口语化，适合短视频口播，字幕精简有力',yt:'YouTube Shorts风格：国际化表达，英文为主，简洁紧凑，结尾引导订阅和点赞'}[plat]||'通用社交媒体风格';
+  const userPrompt=`请为以下产品生成${PLAT_NAMES[plat]}平台的推广文案：
+
+产品名称：${name}
+卖点/特点：${sell||'未指定'}
+风格要求：${style}
+${platTip}`;
+  const result=await aiCall(sysPrompt,userPrompt);
+  btn.classList.remove('btn-loading');btn.innerHTML='✨ 生成文案';
+  if(!result){document.getElementById('copyResult').style.display='none';return}
+  // Format markdown-style headings into styled HTML
+  let html=result.split(/(?=^## )/m).filter(Boolean).map(block=>{
+    block=block.trim();
+    const heading=block.match(/^##\s+(.+)$/)?.[1];
+    const content=block.replace(/^##\s+.+\n*/,'');
+    return heading?`<h4 style="color:var(--sec);margin-bottom:.6rem;font-size:.95rem">${heading}</h4><pre style="white-space:pre-wrap;background:var(--bg);padding:1rem;border-radius:8px;font-size:.85rem;line-height:1.8;font-family:inherit;color:var(--txt)">${escapeHtml(content.trim())}</pre>`:`<pre style="white-space:pre-wrap;background:var(--bg);padding:1rem;border-radius:8px;font-size:.85rem;line-height:1.8;font-family:inherit;color:var(--txt)">${escapeHtml(block.trim())}</pre>`;
+  }).join('');
+  document.getElementById('copyOutput').innerHTML=html;
+  document.getElementById('copyResult').style.display='block';
+  showToast('文案已生成！','success')
+}
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+// ═══════════ TOAST ═══════════
+function showToast(msg,type='info'){const t=document.createElement('div');t.className='toast toast-'+type;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000)}
+
+// ═══════════ INIT ═══════════
+(async ()=>{load();if(!state.topics.length)loadDemoData();renderAll()})();
+</script>
+</body>
+</html>
