@@ -82,6 +82,7 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .key-status{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;padding:.2rem .5rem;border-radius:4px}
 .key-ok{background:rgba(0,184,148,.15);color:var(--done)}
 .key-off{background:rgba(255,80,80,.15);color:#ff6b6b}
+.model-chips .chip{padding:.3rem .7rem;border-radius:20px;font-size:.8rem;background:rgba(255,255,255,.04);border:1px solid var(--border);cursor:pointer;color:var(--dim);transition:all .2s}.model-chips .chip:hover{border-color:var(--sec);color:var(--sec)}.model-chips .chip.selected{background:rgba(0,206,201,.12);border-color:var(--sec);color:var(--sec)}
 </style>
 </head>
 <body>
@@ -157,7 +158,9 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
     <div class="page" id="page-settings">
       <div class="card" style="max-width:650px"><div class="card-hd"><h3>⚙️ 系统设置</h3></div><div class="card-bd">
         <div class="form-group"><label>🔑 OpenRouter API Key</label><input class="form-input" id="setApiKey" type="password" placeholder="sk-or-v1-xxxxxxxx"><br><span style="font-size:.75rem;color:var(--dim)">用于AI文案生成和选题评分。<a href="https://openrouter.ai/keys" target="_blank">去获取 →</a></span></div>
-        <div class="form-group"><label>🤖 推荐模型</label><select class="form-input select" id="setModel"><option value="anthropic/claude-sonnet-4.6">Claude Sonnet 4.6（强推理、长文本）</option><option value="google/gemini-2.0-flash">Gemini 2.0 Flash（快、便宜）</option><option value="meta-llama/llama-3.3-70b-versatile">Llama 3.3 70B（开源最强）</option><option value="microsoft/wizardlm-2-8x22b">WizardLM 2 8x22B（中文友好）</option></select></div>
+        <div class="form-group"><label>🤖 模型名称 <span style="font-size:.75rem;color:var(--dim)">（OpenRouter格式：provider/model-name）</span></label><input class="form-input" id="setModel" placeholder="anthropic/claude-sonnet-4.6" /></div>
+        <div style="margin-bottom:1rem"><label style="display:block;font-size:.8rem;color:var(--dim);margin-bottom:.4rem">快速选择：</label><div class="model-chips" style="display:flex;gap:.4rem;flex-wrap:wrap"></div></div>
+        <div class="form-group"><label>🔍 连通性测试</label><div style="display:flex;gap:.5rem"><button class="btn btn-out" id="testConnBtn" onclick="testAiConnection()">📡 测试API连接</button><span id="testResult" style="font-size:.85rem;display:flex;align-items:center"></span></div></div>
         <div class="form-group"><label>默认团队名称</label><input class="form-input" id="setTeam" value="若腾AI破局"></div>
         <div class="form-group"><label>内容质量及格线</label><input class="form-input" id="setMinScore" type="number" value="65" style="width:120px"></div>
         <div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap">
@@ -267,7 +270,7 @@ function renderDistribution(){
   document.getElementById('distBody').innerHTML=pub.map(t=>`<tr><td>${t.title}</td><td><span class="badge bg-${t.status}">${STATUS_NAMES[t.status]}</span></td><td>${t.platforms.xhs.status?'✅ '+t.platforms.xhs.views:'—'}</td><td>${t.platforms.dy.status?'✅ '+t.platforms.dy.views:'—'}</td><td>${t.platforms.yt.status?'✅ '+t.platforms.yt.views:'—'}</td><td>${t.platforms.xhs.publishDate||t.platforms.dy.publishDate||'—'}</td><td><button class="btn btn-sm btn-out" onclick="editDist('${t.id}')" style="padding:.2rem .5rem;font-size:.72rem">更新数据</button></td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--dim)">暂无已发布内容</td></tr>';
 }
 
-function renderSettings(){document.getElementById('setApiKey').value=state.settings.apiKey||'';document.getElementById('setModel').value=state.settings.model;document.getElementById('setTeam').value=state.settings.team;document.getElementById('setMinScore').value=state.settings.minScore}
+function renderSettings(){document.getElementById('setApiKey').value=state.settings.apiKey||'';document.getElementById('setModel').value=state.settings.model||'anthropic/claude-sonnet-4.6';document.getElementById('setTeam').value=state.settings.team;document.getElementById('setMinScore').value=state.settings.minScore;renderModelChips()
 
 // ═══════════ ACTIONS ═══════════
 function openAddModal(){state.editingId=null;document.getElementById('modalTitle').textContent='新建选题';document.getElementById('fTitle').value='';document.getElementById('fDesc').value='';document.getElementById('fScore').value=75;document.getElementById('fTags').value='';document.getElementById('modalOverlay').classList.add('show')}
@@ -299,7 +302,7 @@ function saveSettings(){
     if(newKey.length<10){showToast('API Key格式不正确','error');return}
     state.settings.apiKey=newKey;showToast('API Key已保存','success');
   }
-  state.settings.model=document.getElementById('setModel').value;
+  state.settings.model=document.getElementById('setModel').value.trim();
   state.settings.team=document.getElementById('setTeam').value;
   state.settings.minScore=parseInt(document.getElementById('setMinScore').value)||65;
   save();updateKeyStatus();showToast('设置已保存','success')
