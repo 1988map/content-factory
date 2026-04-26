@@ -82,7 +82,6 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .key-status{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;padding:.2rem .5rem;border-radius:4px}
 .key-ok{background:rgba(0,184,148,.15);color:var(--done)}
 .key-off{background:rgba(255,80,80,.15);color:#ff6b6b}
-.model-chips .chip{padding:.3rem .7rem;border-radius:20px;font-size:.8rem;background:rgba(255,255,255,.04);border:1px solid var(--border);cursor:pointer;color:var(--dim);transition:all .2s}.model-chips .chip:hover{border-color:var(--sec);color:var(--sec)}.model-chips .chip.selected{background:rgba(0,206,201,.12);border-color:var(--sec);color:var(--sec)}
 </style>
 </head>
 <body>
@@ -154,24 +153,32 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
       <div class="card"><div class="card-hd"><h3>📡 多平台分发管理</h3><button class="btn btn-sm btn-out" onclick="exportDistData()">导出表格</button></div>
       <div class="card-bd"><table class="tbl" id="distTable"><thead><tr><th>选题标题</th><th>状态</th><th>小红书</th><th>抖音</th><th>YouTube</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="distBody"></tbody></table></div></div>
     </div>
-    <!-- SETTINGS -->
+        <!-- SETTINGS -->
     <div class="page" id="page-settings">
-      <div class="card" style="max-width:650px"><div class="card-hd"><h3>⚙️ 系统设置</h3></div><div class="card-bd">
-        <div class="form-group"><label>🔑 OpenRouter API Key</label><input class="form-input" id="setApiKey" type="password" placeholder="sk-or-v1-xxxxxxxx"><br><span style="font-size:.75rem;color:var(--dim)">用于AI文案生成和选题评分。<a href="https://openrouter.ai/keys" target="_blank">去获取 →</a></span></div>
-        <div class="form-group"><label>🤖 模型名称 <span style="font-size:.75rem;color:var(--dim)">（OpenRouter格式：provider/model-name）</span></label><input class="form-input" id="setModel" placeholder="anthropic/claude-sonnet-4.6" /></div>
-        <div style="margin-bottom:1rem"><label style="display:block;font-size:.8rem;color:var(--dim);margin-bottom:.4rem">快速选择：</label><div class="model-chips" style="display:flex;gap:.4rem;flex-wrap:wrap"></div></div>
-        <div class="form-group"><label>🔍 连通性测试</label><div style="display:flex;gap:.5rem"><button class="btn btn-out" id="testConnBtn" onclick="testAiConnection()">📡 测试API连接</button><span id="testResult" style="font-size:.85rem;display:flex;align-items:center"></span></div></div>
+      <div class="card" style="max-width:650px;margin-bottom:1.5rem"><div class="card-hd"><h3>⚙️ 系统设置</h3><span style="font-size:.8rem;color:var(--dim)" id="connStatus"></span></div><div class="card-bd">
+        <div class="form-group"><label>🔑 OpenRouter API Key</label><div style="display:flex;gap:.5rem"><input class="form-input" id="setApiKey" type="password" placeholder="sk-or-v1-..."><button class="btn btn-sm btn-out" onclick="testAiConnection()" id="testConnBtn">🧪 测试连接</button></div><br><span style="font-size:.75rem;color:var(--dim)">用于AI文案生成和选题评分。<a href="https://openrouter.ai/keys" target="_blank">去获取 →</a></span></div>
+        <div class="form-group"><label>🤖 快速选择模型</label><div id="modelChips" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem"></div></div>
+        <div class="form-group"><label>或自定义模型 ID</label><div style="display:flex;gap:.5rem"><input class="form-input" id="setModel" placeholder="如 anthropic/claude-sonnet-4.6" style="flex:1"><button class="btn btn-sm btn-warn" onclick="saveCustomModel()">✓ 确认</button></div></div>
         <div class="form-group"><label>默认团队名称</label><input class="form-input" id="setTeam" value="若腾AI破局"></div>
         <div class="form-group"><label>内容质量及格线</label><input class="form-input" id="setMinScore" type="number" value="65" style="width:120px"></div>
         <div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap">
-          <button class="btn btn-pri" onclick="saveSettings()">保存设置</button>
+          <button class="btn btn-pri" onclick="saveSettings()">💾 保存设置</button>
           <button class="btn btn-out" onclick="loadDemoData()">🔄 恢复演示数据</button>
           <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空数据</button>
         </div>
       </div></div>
+      <div class="card" style="max-width:650px;margin-bottom:1.5rem"><div class="card-hd"><h3>📦 数据管理</h3></div><div class="card-bd">
+        <p style="color:var(--dim);font-size:.85rem;margin-bottom:1rem">备份所有选题和设置为 JSON 文件，可在任意设备恢复。</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-pri" onclick="exportBackup()">📤 导出备份 (JSON)</button>
+          <button class="btn btn-out" onclick="document.getElementById('importFile').click()">📥 导入备份</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
+        </div>
+      </div></div>
+      <div class="card" style="max-width:650px"><div class="card-hd"><h3>ℹ️ 关于</h3></div><div class="card-bd">
+        <p style="color:var(--dim);font-size:.85rem;line-height:1.8">内容工厂 v3.1 | 了解人工智能科技云南有限公司<br>前端部署于 GitHub Pages · 数据存储于浏览器本地 (localStorage)<br>AI 引擎由 OpenRouter 驱动 | © 2026 若腾AI破局</p>
+      </div></div>
     </div>
-  </div>
-</div>
 <!-- ADD/EDIT MODAL -->
 <div class="modal-overlay" id="modalOverlay"><div class="modal"><div class="modal-hd"><h3 id="modalTitle">新建选题</h3><span class="modal-cl" onclick="closeModal()">✕</span></div>
 <div class="modal-bd">
@@ -194,6 +201,7 @@ const CATEGORIES={vip:{name:'性价比好物',cls:'vip'},fashion:{name:'时尚�
 const PLAT_NAMES={xhs:'小红书',dy:'抖音',yt:'YouTube'};
 const STATUS_NAMES={draft:'草稿',writing:'创作中',review:'审核中',published:'已发布',track:'数据追踪'};
 const STATUSES=['draft','writing','review','published','track'];
+const QUICK_MODELS=[{id:'anthropic/claude-sonnet-4.6',label:'Claude Sonnet 4.6',desc:'强推理'},{id:'google/gemini-2.0-flash',label:'Gemini 2.0 Flash',desc:'快且便宜'},{id:'meta-llama/llama-3.3-70b-versatile',label:'Llama 3.3 70B',desc:'开源最强'},{id:'microsoft/wizardlm-2-8x22b',label:'WizardLM 2',desc:'中文友好'},{id:'qwen/qwen-2.5-vl-72b-instruct',label:'Qwen 2.5 VL',desc:'视觉+文本'}];
 
 // ═══════════ STATE ═══════════
 let state={topics:[],settings:{apiKey:'',model:'anthropic/claude-sonnet-4.6',team:'若腾AI破局',minScore:65},editingId:null};
@@ -213,7 +221,7 @@ const DEMO=[
 {id:genId(),title:'新手如何做跨境电商选品',desc:'跨境电商选品的底层逻辑+3个低成本起步策略',category:'business',priority:'high',score:82,platform:'yt',status:'draft',tags:['跨境电商','选品','电商创业'],created:'2025-04-22',platforms:{xhs:{status:'',publishDate:'',views:'',likes:''},dy:{status:'',publishDate:'',views:'',likes:''},yt:{status:'draft',publishDate:'',views:'',likes:''}},ai_report:''},
 ];
 
-function loadDemoData(){state.topics=DEMO.map(t=>({...t,id:t.id||genId()}));save();renderAll();renderModelChips();showToast('已恢复演示数据','success')}
+function loadDemoData(){state.topics=DEMO.map(t=>({...t,id:t.id||genId()}));save();renderAll();showToast('已恢复演示数据','success')}
 function clearAllData(){if(confirm('确定清空所有数据？')){state.topics=[];save();renderAll();showToast('数据已清空','info')}}
 
 // ═══════════ RENDERING ═══════════
@@ -270,7 +278,7 @@ function renderDistribution(){
   document.getElementById('distBody').innerHTML=pub.map(t=>`<tr><td>${t.title}</td><td><span class="badge bg-${t.status}">${STATUS_NAMES[t.status]}</span></td><td>${t.platforms.xhs.status?'✅ '+t.platforms.xhs.views:'—'}</td><td>${t.platforms.dy.status?'✅ '+t.platforms.dy.views:'—'}</td><td>${t.platforms.yt.status?'✅ '+t.platforms.yt.views:'—'}</td><td>${t.platforms.xhs.publishDate||t.platforms.dy.publishDate||'—'}</td><td><button class="btn btn-sm btn-out" onclick="editDist('${t.id}')" style="padding:.2rem .5rem;font-size:.72rem">更新数据</button></td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--dim)">暂无已发布内容</td></tr>';
 }
 
-}function renderSettings(){document.getElementById('setApiKey').value=state.settings.apiKey||'';document.getElementById('setModel').value=state.settings.model||'anthropic/claude-sonnet-4.6';document.getElementById('setTeam').value=state.settings.team;document.getElementById('setMinScore').value=state.settings.minScore;renderModelChips()}
+function renderSettings(){document.getElementById('setApiKey').value=state.settings.apiKey||'';document.getElementById('setModel').value=state.settings.model;document.getElementById('setTeam').value=state.settings.team;document.getElementById('setMinScore').value=state.settings.minScore}
 
 // ═══════════ ACTIONS ═══════════
 function openAddModal(){state.editingId=null;document.getElementById('modalTitle').textContent='新建选题';document.getElementById('fTitle').value='';document.getElementById('fDesc').value='';document.getElementById('fScore').value=75;document.getElementById('fTags').value='';document.getElementById('modalOverlay').classList.add('show')}
@@ -283,13 +291,13 @@ async function saveTopic(){
   const title=document.getElementById('fTitle').value.trim();if(!title){showToast('请填写选题标题','info');return}
   const tags=document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean);
   const plat=document.getElementById('fPlat').value;
-  const platforms=state.editingId?(state.topics.find(t=>t.id===state.editingId)?.platforms||initPlatforms(plat)):initPlatforms(plat);
-  const topic={id:state.editingId||(state.editingId=genId()),title,desc:document.getElementById('fDesc').value.trim(),category:document.getElementById('fCat').value,priority:document.getElementById('fPrio').value,score:parseInt(document.getElementById('fScore').value)||70,platform:plat,tags,created:state.editingId&&state.editingId.startsWith('t_')?new Date().toISOString().split('T')[0]:new Date().toISOString().split('T')[0],status:'draft',platforms,ai_report:''};
-  if(state.editingId&&!state.editingId.startsWith('t_')){const idx=state.topics.findIndex(x=>x.id===state.editingId);if(idx!==-1){Object.assign(state.topics[idx],topic);topic=state.topics[idx]}}
-  if(!state.topics.find(t=>t.id===topic.id)){state.topics.push(topic)}else{const idx=state.topics.findIndex(t=>t.id===topic.id);if(idx!==-1)state.topics[idx]=topic}
-  // Auto score with AI if key is set
-  if(state.settings.apiKey&&topic.ai_report){try{topic=await aiDoScore(topic.title,topic.desc,plat,true)}catch(e){}}
-  state.editingId=null;save();closeModal();renderAll();showToast(state.editingId?'选题已更新':'选题已创建','success')
+  const isUpdate=!!state.editingId;
+  const oldTopic=isUpdate?state.topics.find(t=>t.id===state.editingId):null;
+  const platforms=oldTopic?.platforms||initPlatforms(plat);
+  const now=new Date().toISOString().split('T')[0];
+  const topic={id:isUpdate?state.editingId:genId(),title,desc:document.getElementById('fDesc').value.trim(),category:document.getElementById('fCat').value,priority:document.getElementById('fPrio').value,score:parseInt(document.getElementById('fScore').value)||70,platform:plat,tags,created:oldTopic?.created||now,status:'draft',platforms,ai_report:''};
+  if(isUpdate&&oldTopic){Object.assign(oldTopic,topic)}else{state.topics.push(topic)}
+  state.editingId=null;save();closeModal();renderAll();showToast(isUpdate?'选题已更新':'选题已创建','success')
 }
 async function deleteTopic(id){if(!confirm('确认删除？'))return;state.topics=state.topics.filter(t=>t.id!==id);save();renderAll();showToast('已删除','info')}
 function editDist(id){const t=state.topics.find(x=>x.id===id);if(!t)return;const pv=prompt('请输入浏览量（如 2.3w / 5600）：',t.platforms.xhs.views);if(pv!==null){t.platforms.xhs.views=pv;t.platforms.xhs.status='published';save();renderAll();showToast('数据已更新','success')}}
@@ -302,7 +310,7 @@ function saveSettings(){
     if(newKey.length<10){showToast('API Key格式不正确','error');return}
     state.settings.apiKey=newKey;showToast('API Key已保存','success');
   }
-  state.settings.model=document.getElementById('setModel').value.trim();
+  state.settings.model=document.getElementById('setModel').value;
   state.settings.team=document.getElementById('setTeam').value;
   state.settings.minScore=parseInt(document.getElementById('setMinScore').value)||65;
   save();updateKeyStatus();showToast('设置已保存','success')
@@ -310,7 +318,7 @@ function saveSettings(){
 function exportDistData(){const pub=state.topics.filter(t=>t.status==='published'||t.status==='track');let csv='选题标题,小红书,抖音,YouTube\n';pub.forEach(t=>{csv+=`"${t.title}","${t.platforms.xhs.views}","${t.platforms.dy.views}","${t.platforms.yt.views}"\n`});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='content-factory-export.csv';a.click();showToast('数据已导出','success')}
 
 // ═══════════ NAVIGATION ═══════════
-document.querySelectorAll('.nav-item').forEach(n=>{n.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));n.classList.add('active');const pg=n.dataset.page;document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+pg).classList.add('active');const titles={dashboard:'数据看板',workflow:'工作流',topics:'选题库','ai-scoring':'AI评分',copywriter:'文案模板',distribution:'分发中心',settings:'设置'};document.getElementById('pageTitle').textContent=titles[pg]||pg;if(pg==='dashboard')renderDashboard();if(pg==='workflow')renderKanban();if(pg==='topics')renderTopics();if(pg==='distribution')renderDistribution()})});
+document.querySelectorAll('.nav-item').forEach(n=>{n.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));n.classList.add('active');const pg=n.dataset.page;document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+pg).classList.add('active');const titles={dashboard:'数据看板',workflow:'工作流',topics:'选题库','ai-scoring':'AI评分',copywriter:'文案生成',distribution:'分发中心',settings:'设置'};document.getElementById('pageTitle').textContent=titles[pg]||pg;if(pg==='dashboard')renderDashboard();if(pg==='workflow')renderKanban();if(pg==='topics')renderTopics();if(pg==='distribution')renderDistribution();if(pg==='settings')renderSettings()})});
 
 // ═══════════ OPENROUTER AI ═══════════
 async function aiCall(systemPrompt,userPrompt,model){
@@ -411,45 +419,73 @@ function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').repla
 // ═══════════ TOAST ═══════════
 function showToast(msg,type='info'){const t=document.createElement('div');t.className='toast toast-'+type;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000)}
 
-// ═══════════ MODEL CHIPS & API TEST ═══════════
-const QUICK_MODELS=[{id:'anthropic/claude-sonnet-4.6',label:'Claude Sonnet 4.6'},{id:'google/gemini-2.0-flash',label:'Gemini 2.0 Flash'},{id:'google/gemini-2.5-pro-preview-06-05',label:'Gemini 2.5 Pro'},{id:'meta-llama/llama-3.3-70b-versatile',label:'Llama 3.3 70B'},{id:'openai/gpt-4o-mini',label:'GPT-4o Mini'},{id:'mistralai/mistral-saba-24b',label:'Mistral Saba'}];
-let selectedChip=null;
+// ═══════════ MODEL CHIPS ═══════════
 function renderModelChips(){
-  const c=document.querySelector('.model-chips');if(!c)return;
-  c.innerHTML=QUICK_MODELS.map(m=>'<span class="chip'+(state.settings.model===m.id?' selected':'')+'" data-model="'+m.id+'">'+m.label+'</span>').join('');
-  c.querySelectorAll('.chip').forEach(ch=>{ch.addEventListener('click',()=>{c.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));ch.classList.add('selected');document.getElementById('setModel').value=ch.dataset.model})});
+  const el=document.getElementById('modelChips');if(!el)return;
+  const currentModel=state.settings.model||'anthropic/claude-sonnet-4.6';
+  el.innerHTML=QUICK_MODELS.map(m=>`<button class="btn btn-sm ${currentModel===m.id?'btn-pri':'btn-out'}" onclick="selectQuickModel('${m.id}')" title="${m.desc}">${m.label}</button>`).join('')+`<button class="btn btn-sm btn-out" onclick="document.getElementById('setModel').focus()" style="opacity:.6">✏️ 自定义</button>`;
 }
+function selectQuickModel(modelId){
+  state.settings.model=modelId;save();renderModelChips();updateKeyStatus();showToast('已切换 '+QUICK_MODELS.find(m=>m.id===modelId)?.label+'','success');
+}
+function saveCustomModel(){
+  const v=document.getElementById('setModel').value.trim();
+  if(!v){showToast('请输入模型ID','error');return}
+  state.settings.model=v;save();renderModelChips();updateKeyStatus();showToast('模型已更新','success');
+}
+
+// ═══════════ AI CONNECTION TEST ═══════════
 async function testAiConnection(){
-  const key=document.getElementById('setApiKey').value.trim();
-  const model=(document.getElementById('setModel').value||'anthropic/claude-sonnet-4.6').trim();
-  if(!key){showToast('请先输入API Key','error');return}
-  const btn=document.getElementById('testConnBtn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> 测试中...';
-  document.getElementById('testResult').innerHTML='<span class="loading-text"><span class="spinner"></span> 正在验证...</span>';
+  const btn=document.getElementById('testConnBtn');const apiKey=state.settings.apiKey||document.getElementById('setApiKey').value.trim();
+  if(!apiKey){showToast('请先填写 API Key','error');return}
+  btn.classList.add('btn-loading');btn.innerHTML='<span class="spinner"></span> 测试中...';
+  document.getElementById('connStatus').innerHTML='<span class="key-status key-off">⏳ 连接中...</span>';
   try{
-    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model:model,messages:[{role:'user',content:'Reply OK only'}],max_tokens:10,temperature:0.1})});
+    const res=await fetch('https://openrouter.ai/api/v1/models',{method:'GET',headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json'}});
     if(res.ok){
       const data=await res.json();
-      const usage=data.usage?.total_tokens||'?';
-      document.getElementById('testResult').innerHTML='<span style="color:#00b894">✅ 连接成功！已用token: '+usage+'</span>';
-      showToast('✅ API正常！模型:'+data.choices?.[0]?.model,model);
+      const count=data.data?.length||0;
+      document.getElementById('connStatus').innerHTML=`<span class="key-status key-ok">✅ 已连接 · ${count} 模型可用</span>`;
+      showToast('AI 连接正常！可调用 '+count+' 个模型','success');
     }else{
-      const err=await res.text().catch(()=>'{text:"unknown"}');
-      document.getElementById('testResult').innerHTML='<span style="color:#ff6b6b">❌ HTTP '+res.status+'</span>';
-      showToast('❌ API错误: '+err.slice(0,120),'error');
+      const errText=await res.text();
+      document.getElementById('connStatus').innerHTML='<span class="key-status key-off">❌ 认证失败</span>';
+      showToast('API Key 无效或过期','error');
     }
   }catch(e){
-    document.getElementById('testResult').innerHTML='<span style="color:#ff6b6b">❌ 网络异常</span>';
-    showToast('❌ 无法连接OpenRouter: '+e.message,'error');
+    document.getElementById('connStatus').innerHTML='<span class="key-status key-off">❌ 网络错误</span>';
+    showToast('无法连接到 OpenRouter','error');
   }
-  btn.disabled=false;btn.innerHTML='📡 测试API连接';
+  btn.classList.remove('btn-loading');btn.innerHTML='🧪 测试连接';
 }
 
+// ═══════════ DATA BACKUP & RESTORE ═══════════
+function exportBackup(){
+  const data={version:'3.1',exportDate:new Date().toISOString(),topics:state.topics,settings:state.settings};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='content-factory-backup-'+new Date().toISOString().split('T')[0]+'.json';a.click();
+  URL.revokeObjectURL(url);showToast('备份已导出','success');
 }
-
-
+function importBackup(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.topics&&!data.settings){showToast('无效的备份文件','error');return}
+      if(!confirm('将覆盖当前所有数据，确定导入？')){event.target.value='';return}
+      if(data.topics)state.topics=data.topics;
+      if(data.settings)state.settings={...state.settings,...data.settings};
+      save();renderAll();
+      showToast('数据导入成功！'+(data.topics?data.topics.length+'个选题':'')+(data.settings?'设置已合并':''),'success');
+    }catch(err){showToast('文件格式错误: '+err.message,'error')}
+  };
+  reader.readAsText(file);event.target.value='';
+}
 
 // ═══════════ INIT ═══════════
-(async ()=>{load();if(!state.topics.length)loadDemoData();renderAll()})();
+(async ()=>{load();if(!state.topics.length)loadDemoData();renderAll();renderModelChips()})();
 </script>
 </body>
 </html>
